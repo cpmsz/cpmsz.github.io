@@ -1,6 +1,7 @@
 ---
 layout: post
 title:  "NHN Entertainment 1주차"
+comments: true
 categories: NHN_Entertainment
 tags: 
 - NHN_Entertainment
