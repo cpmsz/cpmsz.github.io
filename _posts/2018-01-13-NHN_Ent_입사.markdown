@@ -1,10 +1,15 @@
 ---
 layout: post
 title:  "NHN Entertainment 1주차"
-categories: "NHN Entertainment"
-tags: "NHN Entertainment"
+categories: "NHN_Entertainment"
+tags: "NHN_Entertainment", "토스트루키 5기"
 author: cpmsz
 description: 
 ---
 
-내용입력 필요
+**베이스 캠프 1주차**
+토스트존에서 7일간의 입문교육을 받은 후 베이스 캠프를 시작하였다.
+첫 자리를 배치받은 후 프로젝트를 기획하고 발표자료를 준비하느라 한주가 엄청 빨리간것 같다.
+책도 벌써 4권이나 받았고 주말에 한권을 거의 다 읽어야 되서 부담되지만 열심히 읽고 앞으로 받을 교육에서 많이 성장했으면 좋겠다.
+또한 다음 주 월요일에 교육 시작후 처음 있는 발표의 첫번째 순서라 부담되지만 무사히 끝내고 싶다.
+음... 이런 글을 제대로 써본적이 없어 어떻게 끝내야 할지 모르겠다. 토스트 루키 5기 화이팅!
