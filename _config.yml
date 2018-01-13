@@ -29,4 +29,4 @@ gems: ['jekyll-paginate']
 exclude: ['README.md', 'LICENSE', "*.bak"]
 
 disqus: "cpmsz"
-google_analytics: "UA-112451392-1"
+gaaccount: "UA-112451392-1"
