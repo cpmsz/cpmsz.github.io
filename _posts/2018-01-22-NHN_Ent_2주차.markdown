@@ -1,0 +1,47 @@
+---
+layout: post
+title:  "NHN Entertainment 2주 차"
+comments: true
+categories: NHN_Entertainment
+tags: 
+- NHN_Entertainment
+- 토스트루키 5기
+author: cpmsz
+description: "베이스 캠프 2주 차"
+
+---
+
+**베이스캠프 2주 차**
+<br>
+2주 차가 끝나갈 무렵 개발을 시작하라는 공지가 올라왔고 회의를 거쳐 메일 읽기화면을 담당하게 되었다. 
+<br><br>
+메일 읽기화면을 만들던 중 첨부파일 목록을 어떻게 보여줄 것인가에 관해 얘기하게 됬고 스크럼 후 토글형식으로 클릭할 때마다 목록 전체가 나타났다가 사라지도록 하기로 정하였다.
+<br><br>
+처음에는 자바스크립트를 사용해 기능을 구현하려다가 교육 때 들었던 그대로 만드는 것 같아 jQuery를 사용해서 만들어 보기로 했다.
+<br><br>
+그 과정에서 몇 가지 알게 된 점이 있는데 
+jQuery는 AddEventListener() 대신 on()을 쓴다는 것을 알게 되었다.
+<br><code>$("#myBtn").on("click", function(){...});</code><br>
+=<br>
+<code>myBtn.AddEventListener("click", function(){...});
+</code>
+<br><br>
+또한 자바스크립트의 onload대신 jQuery는 ready나 load를 쓴다는 것을 알게 되었다.
+<br>
+<code>window.onload = function(){...};</code><br>
+=<br>
+<code>$(document).ready(function(){...});
+</code><br>
+=<br>
+<code>$(window).load(function(){...});
+</code>
+<br><br>
+jQuery의 경우 ready와 load 2가지가 있어서 뭔 차이가 있는지 찾아봤는데 ready의 경우 DOM이 준비된 다음 실행 가능하며 load의 경우 DOM이 준비된 후 페이지의 모든 요소(Ex_ 이미지, 프레임 등)가 모두 불러와 져야 실행한다는 차이가 있다는 것을 알게 됐다.
+<br><br>
+그 후 load를 사용하여 페이지를 작성하였는데 원하는 함수가 실행되지 않았다. 그 이유를 찾아보니 jQuery 3.0버전 이상에서는 <br>
+<code>$(window).load(function(){...});
+</code><br>↓<br>
+<code>$(window).on("load", function(){...});
+</code><br>
+형식으로 입력하도록 바뀌었다는 것 또한 알게 되었다.
+다음 주에는 본격적인 개발에 들어가는데 나로 인해 팀의 일정이 미뤄지는 일이 없도록 열심히 해야겠다.
