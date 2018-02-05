@@ -12,62 +12,87 @@ description: "베이스 캠프 4주 차"
 ---
 
 **베이스캠프 4주 차**
-<br>
+  
+  
 3주 차에 그룹웨어 개발을 끝내고 리팩토링에 들어갔다.
 리팩토링하던 중 FileInputStream이 Klocwork에 Critical로 떠 있는 것을 보고 리팩토링 전에 받은 교육에서 배운 것을 써먹어 봐야겠다는 생각이 들었다. 
-<br>
+  
+  
 교육에서 InputStream의 경우 try with resources를 사용하여 만약 catch로 가더라도 InputStream을 close할 수 있도록 작성하라고 하여 기존에 존재하던 
-<br>
-<code>
+  
+  
+
+```java
     try {
+  
         FileInputStream fileInputStream = new FileInputStream(downloadFile);
+  
         InputStreamResource resource = new InputStreamResource(fileInputStream);
+  
         return resource;
+  
     } catch (IOException e) {
+  
         FileUtil.printError("Download fail", FileService.class, e);
+  
         return null;
+  
     }
-</code> 문장을 아래와 같이 변경하였다.
-<br>
-<code>
+```
+  
+  문장을 아래와 같이 변경하였다.
+
+```java
     try (FileInputStream fileInputStream = new FileInputStream(downloadFile)){
+  
         InputStreamResource resource = new InputStreamResource(fileInputStream);
+  
         return resource;
+  
     } catch (IOException e) {
+  
         FileUtil.printError("Download fail", FileService.class, e);
+  
         return null;
+  
     }
-</code> 
-<br>
+```
+  
+  
 그 후 빌드에도 문제가 없어 간단하게 해결이 된 줄 알았는데 파일을 다운로드 할 경우 에러가 발생했다.
-<br>
+  
 에러가 처음 발생했을 때는 Mapper의 문제인 줄 알고 쿼리문을 살펴보았지만 별문제를 찾지 못했고 다시 한번 파일을 다운로드 하던 중 방금 수정한 부분이 문제라는 것을 알게 되었다.
-<br>
+  
 왜 그런가 생각을 해보니 FileInputStream이 try가 끝남과 동시에 close를 하게 되어 resource를 리턴하더라도 Stream이 닫혀 에러가 발생한다는 것을 깨닫게 되었다.
-<br>
-문제는 여기서 발생했다.
-<br>
+  
+  
+*문제는 여기서 발생했다.*
+  
+  
 기존에 컨트롤러에서는 Resource를 반환받아 ResponseEntity를 통해 헤더와 같이 전송하도록 돼있는데 try with resources를 사용하면서 사용자가 응답을 받기 전에 연결을 끊는 셈이 되었다.
-<br>
+  
+  
 이를 해결하기 위해 여러 방법을 시도해 보았다.
-<br>
+  
+  
 첫번째로 시도한 방법은 Resource대신 InputStream을 반환하여 컨트롤러 단에서 try with resources를 사용한 뒤 InputStreamResource를 생성해서 ResponseEntity에 같이 실어 보내는 방법이었다.
-<br>
+  
 이 방법의 경우 서비스에서 처리했던 부분을 다시 컨트롤러로 가져온다는 점과 Resource를 생성하는 위치만 달라졌지 변한 게 없다는 점에서 실행하기 전부터 결과가 어느 정도 예상됐다.
-<br>
-여기사 결과는 이전과 마찬가지로 사용자에게 응답을 보내기 전에 연결을 끊었다.
-<br>
+  
+여기 결과는 이전과 마찬가지로 사용자에게 응답을 보내기 전에 연결을 끊었다.
+  
+  
 다음에 시도한 방법은 try with resources를 없애고 throws를 통해 예외를 처리하는 방법이었다.
-<br>
+  
 앞서 2번의 실패로 인해 차라리 try with resources를 안 쓰는 방향을 생각했는데 빌드를 하면서 ResponseEntity를 보내주기 전에 close()가 호출되지 않았다는 것을 깨닫고 이 방법도 안 되겠다고 생각했다.
-<br>
+  
 결과는 다운로드는 정상적으로 되지만 Klocwork에 Critical이 생성되는 예상했던 결과가 나왔다.
-<br>
+  
 그 후 여러 가지 방법을 찾아보다가 ResponseEntity를 통해 InputStreamResource로 보내지말고 response를 사용해서 파일을 전송하고 그 후 200 OK만 ResponseEntity로 보내면 되지 않을까 생각했다.
-<br>
+  
 그래서 InputStreamResource를 반환하던 함수를 다음과 같이 바꾸었다.
-<br>
-<code>
+  
+```java
     public FileInputStream downloadFile(Attach targetFile) {
         File downloadFile = new File(targetFile.getFilePath());
         FileInputStream fileInputStream = null;
@@ -79,11 +104,11 @@ description: "베이스 캠프 4주 차"
         }
         return fileInputStream;
     }
-</code>
-<br>
+```
+  
 그 후 컨트롤러에서 response로 응답하기 위해 헤더를 추가하고 response의 OutputStream을 사용하였고 ResponseEntity는 단순히 200 OK만 반환하도록 수정하였다.
-<br>
-<code>
+  
+```java
     try (FileInputStream fileInputStream = fileService.downloadFile(targetFile)) {
         StreamUtils.copy(fileInputStream, response.getOutputStream());
         response.addHeader("content-disposition", "attachment; filename=" + URLEncoder.encode(targetFile.getFileNm(), "UTF-8"));
@@ -91,25 +116,28 @@ description: "베이스 캠프 4주 차"
         FileUtil.printError("Download Fail", FileController.class, e);
     }
     return new ResponseEntity<>(HttpStatus.OK);
-</code>
-<br>
+```
+  
 그런데 코드를 수정한 후 다운로드는 정상적으로 되었지만, 예상과는 다르게 첨부파일이 download.zip파일로 다운로드가 되기 시작했다.
-<br>
+  
 처음에는 인코딩 오류나 헤더를 소문자로 작성하여 그런 줄 알고 그 부분을 집중적으로 봤는데 모두 이상이 없었다.
-<br>
+  
 왜 오류가 나는지 몰라 한참을 찾다 보니 response의 OutputStream으로 작업을 하기 전에 미리 헤더를 정하고 작업을 해야 된다는 글을 보게 되었다.
-<br>
+  
 글을 본 후 코드에 순서가 틀렸다는 것을 깨닫고 다음과 같이 수정하였다.
-<br>
-<code>
+  
+
+```java
 response.addHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode(targetFile.getFileNm(), "UTF-8"));
 StreamUtils.copy(fileInputStream, response.getOutputStream());
-</code>
+```
+  
 헤더를 먼저 정해주고 작업을 한 결과 파일이 정상적으로 다운로드되었다. 이로써 Klocwork에 있던 Critical이 사라졌다.
-<br><br><br>
+      
 여기서 끝났으면 좋았을텐데... 앞서 언급한 FileInputStream을 반환하는 함수에 문제가 생겼다.
-<br>
-<code>
+  
+
+```java
     public FileInputStream downloadFile(Attach targetFile) {
         File downloadFile = new File(targetFile.getFilePath());
         FileInputStream fileInputStream = null;
@@ -121,8 +149,8 @@ StreamUtils.copy(fileInputStream, response.getOutputStream());
         }
         return fileInputStream;
     }
-</code>
-<br>
+```
+  
 이 코드에서 fileInputStream이 사용이 되지 않는다고 Critical에서 Review로 바뀐 것이다.
-<br>
+  
 다행히 리뷰는 그렇게 심각한 오류는 아녀서 일단 다른 작업을 마무리 짓고 해결해야겠다.
